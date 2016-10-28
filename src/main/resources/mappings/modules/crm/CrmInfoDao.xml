@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.crm.dao.CrmInfoDao">
+    
+	<sql id="crmInfoColumns">
+		a.id AS "id",
+		a.custname AS "custname",
+		a.mobile AS "mobile",
+		a.id_card AS "idCard",
+		a.results AS "results",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remark AS "remark",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="crmInfoJoins">
+	</sql>
+    
+	<select id="get" resultType="CrmInfo">
+		SELECT 
+			<include refid="crmInfoColumns"/>
+		FROM crm_info a
+		<include refid="crmInfoJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="CrmInfo">
+		SELECT 
+			<include refid="crmInfoColumns"/>
+		FROM crm_info a
+		<include refid="crmInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="custname != null and custname != ''">
+				AND a.custname = #{custname}
+			</if>
+			<if test="mobile != null and mobile != ''">
+				AND a.mobile = #{mobile}
+			</if>
+			<if test="idCard != null and idCard != ''">
+				AND a.id_card = #{idCard}
+			</if>
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND create_by = #{createBy.id}
+			</if>
+			<if test="results != null and results != ''">
+				AND a.results LIKE 
+					<if test="dbName == 'oracle'">'%'||#{results}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{results}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{results},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.results DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="CrmInfo">
+		SELECT
+		<include refid="crmInfoColumns"/>
+		FROM crm_info a
+		<include refid="crmInfoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findListByScreening" resultType="CrmInfo">
+		SELECT
+			a.id AS  "id",
+			a.custname AS "custname",
+			a.mobile AS "mobile",
+			a.id_card AS "idCard",
+			a.remark AS "remark"
+		FROM crm_info a
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} AND a.results is NULL
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND a.create_by = #{createBy.id}
+			</if>
+		</where>
+		LIMIT 10000
+	</select>
+
+	<insert id="insert">
+		INSERT INTO crm_info(
+			id,
+			custname,
+			mobile,
+			id_card,
+			results,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remark,
+			del_flag
+		) VALUES (
+			#{id},
+			#{custname},
+			#{mobile},
+			#{idCard},
+			#{results},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remark},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE crm_info SET 	
+			custname = #{custname},
+			mobile = #{mobile},
+			id_card = #{idCard},
+			results = #{results},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remark = #{remark}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE crm_info SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
