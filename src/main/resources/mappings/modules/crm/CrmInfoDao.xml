@@ -90,7 +90,7 @@
 			a.remark AS "remark"
 		FROM crm_info a
 		<where>
-			a.del_flag = #{DEL_FLAG_NORMAL} AND a.results is NULL
+			a.del_flag = #{DEL_FLAG_NORMAL} AND (a.results is NULL or a.results = '')
 			<if test="createBy != null and createBy.id != null and createBy.id != ''">
 				AND a.create_by = #{createBy.id}
 			</if>
@@ -143,5 +143,14 @@
 			del_flag = #{DEL_FLAG_DELETE}
 		WHERE id = #{id}
 	</update>
-	
+	<update id="deleteAll">
+		UPDATE crm_info SET
+		del_flag = #{DEL_FLAG_DELETE}
+		<where>
+			del_flag = #{DEL_FLAG_NORMAL}
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND create_by = #{createBy.id}
+			</if>
+		</where>
+	</update>
 </mapper>

@@ -23,4 +23,6 @@ public interface CrmInfoDao extends CrudDao<CrmInfo> {
      * @return
      */
     List<CrmInfo> findListByScreening(CrmInfo crmInfo);
+
+    void deleteAll(CrmInfo crmInfo);
 }

@@ -62,6 +62,11 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
         super.delete(crmInfo);
     }
 
+    @Transactional
+    public void deleteAll(CrmInfo crmInfo){
+        crmInfoDao.deleteAll(crmInfo);
+    }
+
     /**
      * 根据用户ID获取需要进行筛选的数据
      *
