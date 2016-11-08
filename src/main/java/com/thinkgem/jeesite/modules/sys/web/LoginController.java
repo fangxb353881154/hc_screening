@@ -12,7 +12,6 @@ import com.thinkgem.jeesite.modules.crm.service.CrmInfoService;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.web.util.WebUtils;
-import org.jcp.xml.dsig.internal.dom.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,7 +72,7 @@ public class LoginController extends BaseController{
 	 */
 	@RequestMapping(value = "${adminPath}/login", method = RequestMethod.POST)
 	public String loginFail(HttpServletRequest request, HttpServletResponse response, Model model) {
-		String appToken = WebUtils.getCleanParam(request, "appToken");
+
 		String message = (String)request.getAttribute(FormAuthenticationFilter.DEFAULT_MESSAGE_PARAM);
 		String username = WebUtils.getCleanParam(request, FormAuthenticationFilter.DEFAULT_USERNAME_PARAM);
 
@@ -91,7 +90,6 @@ public class LoginController extends BaseController{
 			message = "用户或密码错误, 请重试.";
 		}
 
-		model.addAttribute("appToken", appToken);
 		model.addAttribute(FormAuthenticationFilter.DEFAULT_USERNAME_PARAM, username);
 		model.addAttribute(FormAuthenticationFilter.DEFAULT_REMEMBER_ME_PARAM, rememberMe);
 		model.addAttribute(FormAuthenticationFilter.DEFAULT_MOBILE_PARAM, mobile);

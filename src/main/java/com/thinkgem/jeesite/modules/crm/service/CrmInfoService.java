@@ -143,7 +143,7 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
         requestDataMap.put("currentStatus", Contents.currentStatus);
         requestDataMap.put("currentFollow", Contents.currentFollow);
         requestDataMap.put("refCode", umId);
-        requestDataMap.put("brCode", brCode);
+        requestDataMap.put("brCode", "9970");
         requestDataMap.put("salesChannel", Contents.salesChannel);
         requestDataMap.put("subChannel", Contents.subChannel);
         requestDataMap.put("productType", Contents.productType);
@@ -156,7 +156,7 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
         requestDataMap.put("remark", "");
         //筛选
         String s = null;
-        /*try {
+        try {
             s = HttpRequest.sendPost(url, "requestDataMap=" + URLEncoder.encode(JSONUtils.toJSONString(requestDataMap), "UTF-8"));
             logger.info("筛选结果：" + s);
         } catch (UnsupportedEncodingException e) {
@@ -174,9 +174,7 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
                 && isCancel) {
             //取消订单
             cancelInfo(applNo);
-        }*/
-
-        info.setResults(info.getIdCard());
+        }
         super.save(info);
 
     }
@@ -228,8 +226,8 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
      * @return
      */
     public boolean isAppToken(String umId, String token) {
-        return true;
-        //return StringUtils.isNotEmpty(getBrCode(umId, token));
+        //return true;
+        return StringUtils.isNotEmpty(getBrCode(umId, token));
     }
 
 

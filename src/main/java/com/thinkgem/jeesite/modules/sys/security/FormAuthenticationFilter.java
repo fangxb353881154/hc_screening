@@ -30,12 +30,10 @@ public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.
     public static final String DEFAULT_CAPTCHA_PARAM = "validateCode";
     public static final String DEFAULT_MOBILE_PARAM = "mobileLogin";
     public static final String DEFAULT_MESSAGE_PARAM = "message";
-    public static final String DEFAULT_APP_TOKEN_PARAM = "appToken";
 
     private String captchaParam = DEFAULT_CAPTCHA_PARAM;
     private String mobileLoginParam = DEFAULT_MOBILE_PARAM;
     private String messageParam = DEFAULT_MESSAGE_PARAM;
-    private String appTokenParam = DEFAULT_APP_TOKEN_PARAM;
 
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
         String username = getUsername(request);
@@ -47,8 +45,7 @@ public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.
         String host = StringUtils.getRemoteAddr((HttpServletRequest) request);
         String captcha = getCaptcha(request);
         boolean mobile = isMobileLogin(request);
-        String appToken = getAppToken(request);
-        return new UsernamePasswordToken(username, password.toCharArray(), rememberMe, host, captcha, mobile, appToken);
+        return new UsernamePasswordToken(username, password.toCharArray(), rememberMe, host, captcha, mobile);
     }
 
 
@@ -68,17 +65,11 @@ public class FormAuthenticationFilter extends org.apache.shiro.web.filter.authc.
         return WebUtils.isTrue(request, getMobileLoginParam());
     }
 
-    protected String getAppToken(ServletRequest request) {
-        return WebUtils.getCleanParam(request, getAppTokenParam());
-    }
 
     public String getMessageParam() {
         return messageParam;
     }
 
-    public String getAppTokenParam() {
-        return appTokenParam;
-    }
 
     /**
      * 登录成功之后跳转URL

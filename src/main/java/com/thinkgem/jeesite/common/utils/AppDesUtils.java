@@ -73,18 +73,14 @@ public class AppDesUtils {
         authorKey.setCreditCode("MTfyne3HqXIf6GWOeyBqTg8hDp7nhJgb");
 
         AppDesUtils creditApp = new AppDesUtils();
-        String creditEn = creditApp.encryptString(authorKey.getCreditCode());
-
-        System.out.println("授权吗：" + authorKey.getCreditCode());
-        System.out.println("机械吗：" + authorKey.getMachineCode());
-        System.out.println("授权码 加密结果：" + creditEn +"      加密key："+ Global.getConfig("des.key"));
-
-        AppDesUtils machineApp = new AppDesUtils(creditEn);
-        System.out.println("机械吗 解密结果：" + machineApp.decryptString(authorKey.getMachineCode()) + "      加密key：" + creditEn);
+        String msg = "WUCHENGFA642";
+        String token = "E63A8E86879149A995B04A1C128C9A41";
+        String result = creditApp.encryptString(msg) + "#5#" + creditApp.encryptString(token);
+        System.out.println(result);
        // String machineEn = machineApp.encryptString(authorKey.getMachineCode());
       //  System.out.println("机械吗 加密结果：" + machineEn + "      加密key：" + creditEn);
 
-        System.out.println("");
+        System.out.println(creditApp.decryptString( result.split("#5#")[0]));
 
        /* String s = "flaldfjXO8D";
         AppDesUtils app = new AppDesUtils();

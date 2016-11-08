@@ -172,10 +172,24 @@ public class SystemService extends BaseService implements InitializingBean {
 		userDao.delete(user);
 		// 清除用户缓存
 		UserUtils.clearCache(user);
-//		// 清除权限缓存
-//		systemRealm.clearAllCachedAuthorizationInfo();
 	}
-	
+
+	@Transactional(readOnly = false)
+	public void updateAppTokenById(User user){
+		userDao.updateAppTokenById(user);
+		UserUtils.clearCache(user);
+	}
+
+	/**
+	 * 更新用户剩余扫描数
+	 * @param user
+	 * @return
+	 */
+	public void updateSurplusTotalById(User user){
+		userDao.updateSurplusTotalById(user);
+		UserUtils.clearCache(user);
+	}
+
 	@Transactional(readOnly = false)
 	public void updatePasswordById(String id, String loginName, String newPassword) {
 		User user = new User(id);
@@ -184,8 +198,6 @@ public class SystemService extends BaseService implements InitializingBean {
 		// 清除用户缓存
 		user.setLoginName(loginName);
 		UserUtils.clearCache(user);
-//		// 清除权限缓存
-//		systemRealm.clearAllCachedAuthorizationInfo();
 	}
 	
 	@Transactional(readOnly = false)

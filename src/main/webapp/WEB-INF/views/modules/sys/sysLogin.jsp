@@ -137,8 +137,6 @@
     <input type="text" id="username" name="username" class="input-block-level required" value="${username}">
     <label class="input-label" for="password">密码</label>
     <input type="password" id="password" name="password" class="input-block-level required">
-    <label class="input-label" for="appToken" >APP令牌</label>
-    <input type="text" id="appToken" name="appToken" class="input-block-level required" value="${appToken}">
     <c:if test="${isValidateCodeLogin}">
         <div class="validateCode">
             <label class="input-label mid" for="validateCode">验证码</label>
@@ -146,16 +144,6 @@
         </div>
     </c:if>
     <input class="btn btn-large btn-primary" type="submit" value="登 录"/>&nbsp;&nbsp;
-    <label for="rememberMe" title="下次不需要再登录"><input type="checkbox" id="rememberMe"
-                                                    name="rememberMe" ${rememberMe ? 'checked' : ''}/>
-        记住我（公共场所慎用）</label>
-    <%--<div id="themeSwitch" class="dropdown">
-        <a class="dropdown-toggle" data-toggle="dropdown" href="#">${fns:getDictLabel(cookie.theme.value,'theme','默认主题')}<b class="caret"></b></a>
-        <ul class="dropdown-menu">
-          <c:forEach items="${fns:getDictList('theme')}" var="dict"><li><a href="#" onclick="location='${pageContext.request.contextPath}/theme/${dict.value}?url='+location.href">${dict.label}</a></li></c:forEach>
-        </ul>
-        <!--[if lte IE 6]><script type="text/javascript">$('#themeSwitch').hide();</script><![endif]-->
-    </div>--%>
 </form>
 <div class="footer">
     Copyright &copy; ${fns:getConfig('copyrightYear')} ${fns:getConfig('productName')}

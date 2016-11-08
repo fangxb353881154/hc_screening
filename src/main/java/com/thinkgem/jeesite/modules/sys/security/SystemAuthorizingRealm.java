@@ -84,15 +84,18 @@ public class SystemAuthorizingRealm extends AuthorizingRealm {
 			}
 
 			//验证token令牌
-			if (!user.isAdmin() && !getCrmInfoService().isAppToken(token.getUsername(), token.getAppToken())) {
-				throw new AuthenticationException("msg:令牌无效,请重试.");
-			}else{
-				user.setAppToken(token.getAppToken());
-				UserUtils.setUser(user);
+			if (!user.isAdmin()) {
+				if (StringUtils.isNotEmpty(user.getAppToken())) {
+					if (!getCrmInfoService().isAppToken(token.getUsername(),user.getAppToken())){
+						throw new AuthenticationException("msg:APP登录失效，请重新登录APP并配对账号.");
+					}
+				}else{
+					throw new AuthenticationException("msg:请重新登录APP并配对账号.");
+				}
 			}
 
 			byte[] salt = Encodes.decodeHex(user.getPassword().substring(0,16));
-			return new SimpleAuthenticationInfo(new Principal(user, token.isMobileLogin(), token.getAppToken()),
+			return new SimpleAuthenticationInfo(new Principal(user, token.isMobileLogin()),
 					user.getPassword().substring(16), ByteSource.Util.bytes(salt), getName());
 		} else {
 			return null;
@@ -200,13 +203,6 @@ public class SystemAuthorizingRealm extends AuthorizingRealm {
 		setCredentialsMatcher(matcher);
 	}
 	
-//	/**
-//	 * 清空用户关联权限认证，待下次使用时重新加载
-//	 */
-//	public void clearCachedAuthorizationInfo(Principal principal) {
-//		SimplePrincipalCollection principals = new SimplePrincipalCollection(principal, getName());
-//		clearCachedAuthorizationInfo(principals);
-//	}
 
 	/**
 	 * 清空所有关联认证
@@ -214,12 +210,6 @@ public class SystemAuthorizingRealm extends AuthorizingRealm {
 	 */
 	@Deprecated
 	public void clearAllCachedAuthorizationInfo() {
-//		Cache<Object, AuthorizationInfo> cache = getAuthorizationCache();
-//		if (cache != null) {
-//			for (Object key : cache.keys()) {
-//				cache.remove(key);
-//			}
-//		}
 	}
 
 	/**
@@ -250,22 +240,12 @@ public class SystemAuthorizingRealm extends AuthorizingRealm {
 		private String loginName; // 登录名
 		private String name; // 姓名
 		private boolean mobileLogin; // 是否手机登录
-		private String appToken;
-		
-//		private Map<String, Object> cacheMap;
 
 		public Principal(User user, boolean mobileLogin) {
 			this.id = user.getId();
 			this.loginName = user.getLoginName();
 			this.name = user.getName();
 			this.mobileLogin = mobileLogin;
-		}
-		public Principal(User user, boolean mobileLogin, String appToken) {
-			this.id = user.getId();
-			this.loginName = user.getLoginName();
-			this.name = user.getName();
-			this.mobileLogin = mobileLogin;
-			this.appToken = appToken;
 		}
 
 		public String getId() {
@@ -284,17 +264,6 @@ public class SystemAuthorizingRealm extends AuthorizingRealm {
 			return mobileLogin;
 		}
 
-		public String getAppToken() {
-			return appToken;
-		}
-
-		//		@JsonIgnore
-//		public Map<String, Object> getCacheMap() {
-//			if (cacheMap==null){
-//				cacheMap = new HashMap<String, Object>();
-//			}
-//			return cacheMap;
-//		}
 
 		/**
 		 * 获取SESSIONID

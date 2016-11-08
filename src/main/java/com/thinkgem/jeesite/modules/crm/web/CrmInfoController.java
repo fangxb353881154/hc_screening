@@ -11,6 +11,7 @@ import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
 import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
 import com.thinkgem.jeesite.modules.sys.entity.User;
+import com.thinkgem.jeesite.modules.sys.service.SystemService;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -47,6 +48,8 @@ public class CrmInfoController extends BaseController {
 
     @Autowired
     private CrmInfoService crmInfoService;
+    @Autowired
+    private SystemService systemService;
 
 
     @ModelAttribute
@@ -125,8 +128,16 @@ public class CrmInfoController extends BaseController {
     public String validateAndSave(RedirectAttributes redirectAttributes) {
         if (crmInfoService.isAppToken()) {
             CrmInfo info = new CrmInfo();
-            info.setCreateBy(UserUtils.getUser());
-
+            User user = UserUtils.getUser();
+            if (user.getSurplusTotal() <= 0) {
+                addMessage(redirectAttributes, "开启扫描失败，您的账号额度为（" + user.getSurplusTotal() + "），请充值！");
+                return "redirect:" + Global.getAdminPath() + "/crm/crmInfo/list?repage";
+            }
+            int limits = 10000;
+            //默认一次性扫描1W条，额度不够以最大额度为主
+            limits = user.getSurplusTotal() > 10000 ? limits : user.getSurplusTotal();
+            info.setCreateBy(user);
+            info.setLimit(limits);
             List<CrmInfo> infoList = crmInfoService.findListByScreening(info);
             try {
                 if (infoList != null && infoList.size() > 0) {
@@ -143,7 +154,11 @@ public class CrmInfoController extends BaseController {
                         startInt += eachNumber;
                     }
                     //crmInfoService.validateAndSave(umId, token, infoList);
-                    addMessage(redirectAttributes,"正在扫描.....<br/>本次扫描数据"+listCount+"条,预计需要5-10分钟. 期间<strong>请勿重复</strong>提交筛选！");
+                    user.setSurplusTotal(user.getSurplusTotal() - listCount);
+                    systemService.updateSurplusTotalById(user);
+                    addMessage(redirectAttributes,"正在扫描.....<br/>本次扫描数据"+listCount+"条,预计需要10-20分钟. 期间<strong>请勿重复提交筛选</strong>、<strong>请勿退出APP</strong>." +
+                            "<br/>违规操作损失的额度概不负责.");
+                    return "redirect:" + Global.getAdminPath() + "/crm/crmInfo/list?repage";
                 } else {
                     throw new RuntimeException("未获取到需要扫描的客户信息！");
                 }
@@ -197,10 +212,23 @@ public class CrmInfoController extends BaseController {
             List<CrmInfo> list = ei.getDataList(CrmInfo.class);
             Pattern p = Pattern.compile("^1[34578]\\d{9}$");
             for (CrmInfo info : list) {
+                String name = info.getCustname();
+                name = name.length() > 3 ? name.substring(0, 3) : name;
+                info.setCustname(name.trim());
+
+                String idCard = info.getIdCard().toUpperCase();
+                idCard = idCard.length() > 18 ? idCard.substring(0, 18) : idCard;
+                info.setIdCard(idCard.trim());
+
+                String mobile = info.getMobile();
+                mobile = mobile.indexOf("0") == 0 ? mobile.substring(1) : mobile;
+                mobile = mobile.length() > 11 ? mobile.substring(0, 11) : mobile;
+                info.setMobile(mobile.trim());
+
                 if (p.matcher(info.getMobile()).matches()) {
                     Pattern sFp = Pattern.compile("^[1-9]\\d{5}[1-9]\\d{3}((0\\d)|(1[0-2]))(([0|1|2]\\d)|3[0-1])\\d{3}([0-9]|X)$");
                     if (sFp.matcher(info.getIdCard()).matches()) {
-                        info.setCustname(info.getCustname().replaceAll(" ", "").trim());
+                        info.setCustname(info.getCustname().replaceAll(" ", ""));
                         crmInfoService.save(info);
                         successNum++;
                     }else{

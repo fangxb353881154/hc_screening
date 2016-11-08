@@ -23,6 +23,7 @@ public class CrmInfo extends DataEntity<CrmInfo> {
 	private String idCard;		// 身份证号
 	private String results;		// 查询结果
 	private String remark;		// 备注
+	private int limit;
 	
 	public CrmInfo() {
 		super();
@@ -84,5 +85,12 @@ public class CrmInfo extends DataEntity<CrmInfo> {
 	public void setRemark(String remark) {
 		this.remark = remark;
 	}
-	
+
+	public int getLimit() {
+		return limit;
+	}
+
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
 }

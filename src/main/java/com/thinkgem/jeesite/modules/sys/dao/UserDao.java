@@ -72,4 +72,18 @@ public interface UserDao extends CrudDao<User> {
 	 */
 	public int updateUserInfo(User user);
 
+
+	/**
+	 * 更新用户APP TOKEN
+	 * @param user
+	 * @return
+	 */
+	int updateAppTokenById(User user);
+
+	/**
+	 * 更新用户剩余扫描数
+	 * @param user
+	 * @return
+	 */
+	int updateSurplusTotalById(User user);
 }
