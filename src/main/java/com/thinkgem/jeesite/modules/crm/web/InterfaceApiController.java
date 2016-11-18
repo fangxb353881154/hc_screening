@@ -8,6 +8,8 @@ import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.crm.service.CrmInfoService;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.service.SystemService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,7 @@ import java.util.Map;
 @RequestMapping(value = "${adminPath}/api/")
 public class InterfaceApiController {
 
+    protected Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private SystemService systemService;
     @Autowired
@@ -42,6 +45,7 @@ public class InterfaceApiController {
             if (StringUtils.isNotEmpty(loginName) && StringUtils.isNotEmpty(appToken)) {
                 AppDesUtils appDesUtils = new AppDesUtils();
                 try{
+                    logger.info("loginName: " + loginName + "        appToken: " + appToken);
                     loginName = appDesUtils.decryptString(loginName);
                     appToken = appDesUtils.decryptString(appToken);
                 }catch (Exception e){
@@ -49,13 +53,13 @@ public class InterfaceApiController {
                 }
                 User user = systemService.getUserByLoginName(loginName);
                 if (user != null) {
-                    if (crmInfoService.isAppToken(user.getLoginName(), appToken)) {
+                   // if (crmInfoService.isAppToken(user.getLoginName(), appToken)) {
                         user.setAppToken(appToken);
                         systemService.updateAppTokenById(user);
                         return ResultUtils.getSuccess("您的账号剩余额度："+user.getSurplusTotal()+"， 进入后台开启扫(zhuang)描(bi)模式，期间请勿重新(退出)应用！");
-                    }else{
-                        return ResultUtils.getFailure("您的UM号可能登录太久，劳驾重新登录！");
-                    }
+                   // }else{
+                    //    return ResultUtils.getFailure("您的UM号可能登录太久，劳驾重新登录！");
+                   // }
                 }else{
                     return ResultUtils.getFailure("亲，您的UM号未开通该功能！");
                 }
@@ -65,5 +69,17 @@ public class InterfaceApiController {
         }else{
             return ResultUtils.getFailure();
         }
+    }
+
+    public static void main(String[] args) {
+        String s = "348OIKLyXWenwVi4G7cdlQ===5=zZQkXwrFAafliD/OIErqk 5m46oxSo9k/OeL/cW rT6MPJOUVydFZg==";
+        String[] splits = s.split("=5=");
+        String loginName = splits[0];
+        String appToken = splits[1];
+        AppDesUtils appDesUtils = new AppDesUtils();
+        loginName = appDesUtils.decryptString(loginName);
+        appToken = appDesUtils.decryptString(appToken);
+        System.out.println(loginName);
+        System.out.println(appToken);
     }
 }

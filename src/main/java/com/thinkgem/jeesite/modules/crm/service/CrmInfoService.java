@@ -132,7 +132,7 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
     @Transactional(readOnly = false)
     public void validateAndSave(CrmInfo info, boolean isCancel) {
         try {
-            Thread.sleep(500);
+            Thread.sleep(5500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

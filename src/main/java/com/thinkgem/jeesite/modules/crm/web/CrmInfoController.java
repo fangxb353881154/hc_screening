@@ -155,14 +155,14 @@ public class CrmInfoController extends BaseController {
                     int startInt = 0;//起点
                     int listCount = infoList.size();
                     int queue = 1;
-                    while (startInt < listCount) {
+                   /* while (startInt < listCount) {
                         int endInt = (startInt + eachNumber) > listCount ? listCount : (startInt + eachNumber);
                         List<CrmInfo> infoQueueList = infoList.subList(startInt, endInt);
-
-                        new ValidateApp(infoQueueList, queue).start();
-                        queue++;
+*/
+                        new ValidateApp(infoList, queue).start();
+                      /*  queue++;
                         startInt += eachNumber;
-                    }
+                    }*/
                     //crmInfoService.validateAndSave(umId, token, infoList);
                     user.setSurplusTotal(user.getSurplusTotal() - listCount);
                     systemService.updateSurplusTotalById(user);
