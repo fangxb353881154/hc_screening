@@ -153,4 +153,15 @@
 			</if>
 		</where>
 	</update>
+
+	<select id="batchAddCrmInfo">
+		INSERT into crm_info(
+			id,		custname,		mobile,		id_card,
+			create_by,		create_date,	update_by,		update_date,		del_flag
+		)
+		<foreach collection="crmInfoList" item="info" separator=" union all ">
+			SELECT UUID(),#{info.custname}, #{info.mobile} ,#{info.idCard},
+			#{createBy.id},#{createDate},#{createBy.id},#{createDate},#{DEL_FLAG_NORMAL}
+		</foreach>
+	</select>
 </mapper>

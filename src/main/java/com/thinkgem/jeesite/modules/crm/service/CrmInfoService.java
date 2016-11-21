@@ -13,8 +13,10 @@ import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.config.Global;
 import com.thinkgem.jeesite.common.utils.HttpRequest;
 import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.crm.TaskDataUtils;
 import com.thinkgem.jeesite.modules.crm.common.Contents;
 import com.thinkgem.jeesite.modules.sys.entity.User;
+import com.thinkgem.jeesite.modules.sys.service.SystemService;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.URLEditor;
@@ -38,6 +40,9 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
 
     @Autowired
     private CrmInfoDao crmInfoDao;
+    @Autowired
+    private SystemService systemService;
+    private final static Integer GROUP_NUMBER = 2000;
 
 
     public CrmInfo get(String id) {
@@ -55,6 +60,22 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
     @Transactional(readOnly = false)
     public void save(CrmInfo crmInfo) {
         super.save(crmInfo);
+    }
+
+    @Transactional(readOnly = false)
+    public void batchAddCrmInfo(List<CrmInfo> infoList) {
+        int listInt = 0, listCount = infoList.size();
+
+        CrmInfo crmInfo = new CrmInfo();
+        crmInfo.preInsert();
+
+        while (listInt < listCount) {
+            List<CrmInfo> list = infoList.subList(listInt, (listInt + GROUP_NUMBER) > listCount ? listCount : listInt + GROUP_NUMBER);
+            logger.info("--------------------------批量导入客户信息 size:" + list.size());
+            listInt += GROUP_NUMBER;
+            crmInfo.setCrmInfoList(list);
+            dao.batchAddCrmInfo(crmInfo);
+        }
     }
 
     @Transactional(readOnly = false)
@@ -77,53 +98,6 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
         return crmInfoDao.findListByScreening(crmInfo);
     }
 
-
-    @Transactional(readOnly = false)
-    public void validateAndSave(String umId, String token, List<CrmInfo> infoList) {
-        String brCode = getBrCode(umId, token);
-        if (StringUtils.isNotEmpty(brCode)) {
-            Map<String, Object> requestDataMap = Maps.newHashMap();
-            requestDataMap.put("umUserName", umId);
-            requestDataMap.put("appFlag", Contents.appFlag);
-            requestDataMap.put("currentStatus", Contents.currentStatus);
-            requestDataMap.put("currentFollow", Contents.currentFollow);
-            requestDataMap.put("refCode", umId);
-            requestDataMap.put("brCode", brCode);
-            requestDataMap.put("salesChannel", Contents.salesChannel);
-            requestDataMap.put("subChannel", Contents.subChannel);
-            requestDataMap.put("productType", Contents.productType);
-            requestDataMap.put("protectFlag", Contents.protectFlag);
-            String url = Global.getConfig("peace.assures.url");
-            url += "?" + getHttpGetParam(umId, token) + "&requestType=" + Contents.REQUEST_TYPE_VALIDATE_AND_SAVE;
-            for (CrmInfo info : infoList) {
-                requestDataMap.put("id", info.getIdCard());
-                requestDataMap.put("custName", info.getCustname());
-                requestDataMap.put("mobile", info.getMobile());
-                requestDataMap.put("remark", "");
-                //筛选
-                String s = null;
-                try {
-                    s = HttpRequest.sendPost(url, "requestDataMap=" + URLEncoder.encode(JSONUtils.toJSONString(requestDataMap), "UTF-8"));
-                    System.out.println("筛选结果：" + s);
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException("数据提交失败！");
-                }
-                Map resultMap = (Map) JSONUtils.parse(s);
-                String applNo = (String) resultMap.get("applNo");
-                String resultMsg = (String) resultMap.get("resultMsg");
-                resultMsg = StringUtils.isNotEmpty(resultMsg) ? resultMsg : "无额度客户";
-                info.setResults(resultMsg);
-                super.save(info);
-                if (resultMap != null && StringUtils.isNotEmpty(applNo) && (StringUtils.indexOf(resultMsg, "重复提交") == -1)) {
-                    //取消订单
-                    cancelInfo(umId, token, applNo);
-                }
-            }
-        } else {
-            throw new RuntimeException("用户登录信息错误！");
-        }
-    }
-
     /**
      * 数据扫描
      * @param info      客户信息
@@ -132,12 +106,16 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
     @Transactional(readOnly = false)
     public void validateAndSave(CrmInfo info, boolean isCancel) {
         try {
-            Thread.sleep(5500);
+            Thread.sleep(4500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         User user = UserUtils.getUser();
+        validateAndSave(info, user, isCancel);
+    }
+
+    @Transactional(readOnly = false)
+    public void validateAndSave(CrmInfo info, User user, boolean isCancel) {
         String umId = user.getLoginName();
         String token = user.getAppToken();
         String brCode = user.getBrCode();
@@ -168,6 +146,11 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
             throw new RuntimeException("数据提交失败！");
         }
         Map resultMap = (Map) JSONUtils.parse(s);
+        if (StringUtils.equals((String)resultMap.get("msg"),"您的帐号已下线，请重新登录！")){
+            TaskDataUtils.removeCacheByUserId(user.getId());
+            systemService.updateSurplusTotalById(user);
+            return;
+        }
         String applNo = (String) resultMap.get("applNo");
         String resultMsg = (String) resultMap.get("resultMsg");
         resultMsg = StringUtils.isNotEmpty(resultMsg) ? resultMsg : "无额度客户";
@@ -178,12 +161,10 @@ public class CrmInfoService extends CrudService<CrmInfoDao, CrmInfo> {
                 && (StringUtils.indexOf(resultMsg, "重复提交") == -1)
                 && isCancel) {
             //取消订单
-            cancelInfo(applNo);
+            cancelInfo(umId,token,applNo);
         }
         super.save(info);
-
     }
-
     /**
      * 接口获取brcode
      *

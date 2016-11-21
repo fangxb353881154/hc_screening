@@ -39,6 +39,7 @@ public class InterfaceApiController {
     public Map<String,Object> appLogin(@RequestParam(required = true) String msg){
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isNotEmpty(msg)) {
+            msg = msg.replaceAll(" ", "+");
             String[] splits = msg.split("=5=");
             String loginName = splits[0];
             String appToken = splits[1];
@@ -53,13 +54,13 @@ public class InterfaceApiController {
                 }
                 User user = systemService.getUserByLoginName(loginName);
                 if (user != null) {
-                   // if (crmInfoService.isAppToken(user.getLoginName(), appToken)) {
+                    if (crmInfoService.isAppToken(user.getLoginName(), appToken)) {
                         user.setAppToken(appToken);
                         systemService.updateAppTokenById(user);
                         return ResultUtils.getSuccess("您的账号剩余额度："+user.getSurplusTotal()+"， 进入后台开启扫(zhuang)描(bi)模式，期间请勿重新(退出)应用！");
-                   // }else{
-                    //    return ResultUtils.getFailure("您的UM号可能登录太久，劳驾重新登录！");
-                   // }
+                    }else{
+                        return ResultUtils.getFailure("您的UM号可能登录太久，劳驾重新登录！");
+                    }
                 }else{
                     return ResultUtils.getFailure("亲，您的UM号未开通该功能！");
                 }
@@ -72,14 +73,10 @@ public class InterfaceApiController {
     }
 
     public static void main(String[] args) {
-        String s = "348OIKLyXWenwVi4G7cdlQ===5=zZQkXwrFAafliD/OIErqk 5m46oxSo9k/OeL/cW rT6MPJOUVydFZg==";
-        String[] splits = s.split("=5=");
-        String loginName = splits[0];
-        String appToken = splits[1];
+        String s = "wUekyQYCnoYczplYbpDRsJebkG7kL8OeUpN4ljZQt K3ux6RFk Y8g==";
+        s = s.replaceAll(" ", "+");
         AppDesUtils appDesUtils = new AppDesUtils();
-        loginName = appDesUtils.decryptString(loginName);
-        appToken = appDesUtils.decryptString(appToken);
-        System.out.println(loginName);
+        String appToken = appDesUtils.decryptString(s);
         System.out.println(appToken);
     }
 }

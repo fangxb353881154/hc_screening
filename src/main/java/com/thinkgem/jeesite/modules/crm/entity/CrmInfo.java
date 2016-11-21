@@ -9,6 +9,7 @@ import org.hibernate.validator.constraints.Length;
 import com.thinkgem.jeesite.common.persistence.DataEntity;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 客户信息Entity
@@ -24,6 +25,8 @@ public class CrmInfo extends DataEntity<CrmInfo> {
 	private String results;		// 查询结果
 	private String remark;		// 备注
 	private int limit;
+
+	private List<CrmInfo> crmInfoList;
 	
 	public CrmInfo() {
 		super();
@@ -92,5 +95,13 @@ public class CrmInfo extends DataEntity<CrmInfo> {
 
 	public void setLimit(int limit) {
 		this.limit = limit;
+	}
+
+	public List<CrmInfo> getCrmInfoList() {
+		return crmInfoList;
+	}
+
+	public void setCrmInfoList(List<CrmInfo> crmInfoList) {
+		this.crmInfoList = crmInfoList;
 	}
 }
